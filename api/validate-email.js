@@ -20,7 +20,12 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     return res.status(200).json({ 
       status: 'OK',
-      endpoint: 'POST /api/validate-email'
+      endpoint: 'POST /api/validate-email',
+      envStatus: {
+        hasAppScriptCodigo: !!process.env.APPSCRIPT_CODIGO,
+        hasAppScriptMaquina: !!process.env.APPSCRIPT_MAQUINA,
+        hasAppScriptMaestria: !!process.env.APPSCRIPT_MAESTRIA
+      }
     });
   }
 
@@ -41,15 +46,26 @@ export default async function handler(req, res) {
         process.env.APPSCRIPT_MAESTRIA
       ];
 
+      // Debug: validar que existan todas las variables
       if (appScripts.some(url => !url)) {
+        console.error('❌ Falta configurar variables de entorno:', {
+          APPSCRIPT_CODIGO: !!process.env.APPSCRIPT_CODIGO,
+          APPSCRIPT_MAQUINA: !!process.env.APPSCRIPT_MAQUINA,
+          APPSCRIPT_MAESTRIA: !!process.env.APPSCRIPT_MAESTRIA
+        });
         return res.status(500).json({ 
           hasAccess: false, 
-          error: 'Error de configuración en el servidor'
+          error: 'Error de configuración en el servidor: Variables de entorno no configuradas'
         });
       }
 
+      console.log('✅ Validando email:', email);
+
       const results = await Promise.all(
-        appScripts.map(url => validateWithAppScript(url, email))
+        appScripts.map((url, index) => {
+          console.log(`  Consultando AppScript ${index + 1}...`);
+          return validateWithAppScript(url, email);
+        })
       );
 
       const accessibleServers = results.map(r => 
@@ -63,6 +79,8 @@ export default async function handler(req, res) {
       const hasAccess = accessibleServers.some(s => s !== null);
       const whatsapp = results.find(r => r && r.whatsapp)?.whatsapp || null;
 
+      console.log('📊 Resultado:', { hasAccess, accessibleServers });
+
       return res.status(200).json({
         hasAccess,
         accessibleServers,
@@ -71,9 +89,10 @@ export default async function handler(req, res) {
       });
 
     } catch (error) {
+      console.error('💥 Error en el servidor:', error);
       return res.status(500).json({ 
         hasAccess: false, 
-        error: 'Error en el servidor'
+        error: 'Error en el servidor: ' + error.message
       });
     }
   }

@@ -1,3 +1,9 @@
+// Verificar estado del backend al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('📄 Página de login cargada');
+  checkBackendStatus();
+});
+
 async function handleLogin(event) {
   event.preventDefault();
   
