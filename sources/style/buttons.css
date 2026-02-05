@@ -66,7 +66,7 @@
 .btn-gradient:hover:not(:disabled) {
     background-color: var(--btn-primary-hover);
     color: var(--btn-primary-hover-color);
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
@@ -114,7 +114,7 @@
 .btn-outline-white:hover:not(:disabled) {
     background-color: var(--btn-secondary-hover);
     color: var(--btn-secondary-hover-color);
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
 }
 
@@ -161,7 +161,7 @@
 .btn-access:hover:not(:disabled) {
     background-color: var(--btn-accent-hover);
     color: #ffffff;
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
@@ -202,7 +202,7 @@
 
 .btn-danger:hover:not(:disabled) {
     background-color: var(--btn-danger-hover);
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
 }
 
@@ -241,7 +241,7 @@
 
 .btn-success:hover:not(:disabled) {
     background-color: var(--btn-success-hover);
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
 }
 
@@ -281,7 +281,7 @@
 .btn-back:hover {
     background-color: var(--btn-secondary-hover);
     color: var(--btn-secondary-hover-color);
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
 }
 
 /* ============================================
@@ -310,7 +310,7 @@
 
 .btn-whatsapp:hover {
     background-color: #20BA5A;
-    transform: translateY(-2px);
+    transform: translateY(-0.5px);
     box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
 }
 

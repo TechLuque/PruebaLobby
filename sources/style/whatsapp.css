@@ -11,12 +11,13 @@
     text-align: center;
     font-size: 30px;
     box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-    z-index: 100;
+    z-index: 99;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .whatsapp-float:hover {
@@ -47,6 +48,44 @@
     font-size: 2rem;
     display: block;
     font-family: 'Font Awesome 6 Brands' !important;
+}
+
+/* Responsive WhatsApp */
+@media (max-width: 768px) {
+    .whatsapp-float {
+        width: 55px;
+        height: 55px;
+        bottom: 30px;
+        right: 30px;
+    }
+    
+    .whatsapp-float i {
+        font-size: 1.8rem;
+    }
+    
+    .tooltip {
+        font-size: 11px;
+        padding: 4px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .whatsapp-float {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .whatsapp-float i {
+        font-size: 1.5rem;
+    }
+    
+    .tooltip {
+        font-size: 10px;
+        padding: 3px 10px;
+        right: 60px;
+    }
 }
 
 /* Animaciones */

@@ -1,4 +1,9 @@
+/**
+ * LOBBY.JS - Gestiona acceso a las 3 salas
+ * Los links y WhatsApp vienen del Google Sheet vía Apps Script
+ */
 
+// Mapeo de servidores a número de sala
 const SERVER_TO_LOBBY = {
   0: 1, // Apps Script 1 → Sala 1
   1: 2, // Apps Script 2 → Sala 2
@@ -11,6 +16,7 @@ let whatsappNumber = '573176484451';
 
 document.addEventListener('DOMContentLoaded', function() {
   initializeLobby();
+  initializeAnimations();
 });
 
 /**
@@ -131,16 +137,314 @@ function showNoAccessMessage() {
   }
 }
 
-document.addEventListener('click', function (event) {
-    const button = event.target.closest('.access-btn');
-    if (!button) return;
+// ==========================================
+// ANIMACIONES CON GSAP
+// ==========================================
+function initializeAnimations() {
+  // Registrar ScrollTrigger
+  gsap.registerPlugin(gsap.plugins.ScrollTrigger);
 
-    const lobbyNumber = Number(button.dataset.lobby);
+  const circle = document.querySelector('.hero-bg-svg circle');
+  const circleTop = document.querySelector('.hero-bg-svg .circle-top');
 
-    if (!lobbyNumber) {
-        console.warn('Botón sin data-lobby válido', button);
-        return;
+  if (!circle) return;
+
+  const tl = gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: ".hero-section",
+        start: "top top",
+        end: "+=200%",
+        pin: true,
+        scrub: true,
+        invalidateOnRefresh: true
+      }
+    })
+    .fromTo(
+      [".hero-bg-svg"],
+      { autoAlpha: 1 },
+      { autoAlpha: 1 }
+    )
+    .fromTo(
+      circle,
+      {
+        scale: 1,
+        transformOrigin: "50% 50%"
+      },
+      {
+        scale: 1.5,
+        transformOrigin: "50% 50%",
+        duration: 3,
+        ease: "power2.in"
+      }
+    )
+    .to({}, { duration: 0.25 })
+    .fromTo(
+      circleTop,
+      {
+        scale: 0.25,
+        opacity: 0,
+        transformOrigin: "50% 50%"
+      },
+      {
+        scale: 1.5,
+        opacity: 1,
+        transformOrigin: "50% 50%",
+        duration: 3,
+        ease: "power2.in"
+      }
+    )
+    .fromTo(
+      [".hero-btn"],
+      {
+        opacity: 0,
+        pointerEvents: "none"
+      },
+      {
+        opacity: 1,
+        pointerEvents: "auto",
+        duration: 1.5,
+        ease: "power2.out"
+      },
+      "-=0.5"
+    );
+
+  const boxes = gsap.utils.toArray(".box");
+  if (boxes.length > 0) {
+    gsap
+      .timeline({
+        scrollTrigger: {
+          trigger: ".panel.green",
+          start: "top 20%",
+          end: "center 20%",
+          scrub: true
+        }
+      })
+      .to(boxes, {
+        x: (i) => (i % 2 < 1 ? 100 : -100),
+        rotation: (i) => (i % 2 < 1 ? 360 : -360),
+        ease: "none"
+      });
+  }
+}
+
+/**
+ * Acceder a una sala específica
+ */
+function accessLobby(lobbyNumber) {
+  console.log('🔍 accessLobby llamado con:', lobbyNumber);
+  
+  const userEmail = localStorage.getItem('userEmail');
+  console.log('📧 Email desde localStorage:', userEmail);
+  console.log('� Salas accesibles:', accessibleLobbies);
+  
+  if (!userEmail) {
+    console.warn('⚠️ No hay usuario, redirigiendo a login');
+    window.location.href = '../login/login.html';
+    return;
+  }
+  
+  try {
+    // Verificar si tiene acceso
+    if (!accessibleLobbies.includes(lobbyNumber)) {
+      console.warn('❌ Sin acceso a sala:', lobbyNumber);
+      showAccessDeniedModal();
+      return;
     }
+    
+    const lobbyPages = {
+      1: '../codigo/codigo.html',
+      2: '../maquina/maquina.html',
+      3: '../maestria/maestria.html'
+    };
+    
+    console.log('✅ Redirigiendo a:', lobbyPages[lobbyNumber]);
+    
+    localStorage.setItem('currentLobby', lobbyNumber);
+    localStorage.setItem('currentLobbyAccess', new Date().toISOString());
+    
+    window.location.href = lobbyPages[lobbyNumber];
+    
+  } catch (error) {
+    console.error('💥 Error accediendo a sala:', error);
+    alert('Error al acceder a la sala');
+  }
+}
 
-    accessLobby(lobbyNumber);
+/**
+ * Mostrar modal de acceso denegado
+ */
+function showAccessDeniedModal() {
+  const modal = document.getElementById('noAccessModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    console.log('📱 Modal de acceso denegado mostrado');
+  }
+}
+
+/**
+ * Cerrar modal de acceso denegado
+ */
+function closeNoAccessModal() {
+  const modal = document.getElementById('noAccessModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+/**
+ * Inicializar la página
+ */
+function initializeLobby() {
+  console.log('🎬 Inicializando Lobby...');
+  
+  const userEmail = localStorage.getItem('userEmail');
+  const accessibleServersJSON = localStorage.getItem('accessibleServers');
+  
+  console.log('📊 Estado localStorage:', {
+    userEmail: userEmail ? '✓' : '✗',
+    accessibleServers: accessibleServersJSON ? '✓' : '✗'
+  });
+  
+  if (!userEmail || !accessibleServersJSON) {
+    console.warn('⚠️ Usuario no autenticado - Redirigiendo a login');
+    window.location.href = '../login/login.html';
+    return;
+  }
+  
+  try {
+    const accessibleServers = JSON.parse(accessibleServersJSON || '[]');
+    console.log('🔐 Servidores accesibles:', accessibleServers);
+    
+    accessibleLobbies = accessibleServers
+      .map((server, index) => server !== null ? SERVER_TO_LOBBY[index] : null)
+      .filter(x => x !== null);
+    
+    console.log('✅ Salas accesibles mapeadas:', accessibleLobbies);
+    
+    const savedWhatsapp = localStorage.getItem('whatsapp');
+    if (savedWhatsapp) {
+      whatsappNumber = savedWhatsapp.replace(/[^0-9+]/g, '');
+      const modalWhatsappBtn = document.getElementById('modalWhatsappBtn');
+      if (modalWhatsappBtn) {
+        modalWhatsappBtn.href = 'https://wa.me/' + whatsappNumber + '?text=Necesito%20ayuda%20para%20entrar%20a%20una%20sesi%C3%B3n';
+      }
+    }
+    
+  } catch (error) {
+    console.error('💥 Error procesando datos:', error);
+  }
+}
+
+// ==========================================
+// ANIMACIONES CON GSAP
+// ==========================================
+// Registrar ScrollTrigger
+gsap.registerPlugin(gsap.plugins.ScrollTrigger);
+console.log('✅ ScrollTrigger registrado');
+
+const container = document.querySelector(".hero-container");
+let heightRatio = window.innerWidth / window.innerHeight;
+const circle = document.querySelector('.hero-bg-svg circle');
+const circleTop = document.querySelector('.hero-bg-svg .circle-top');
+
+console.log('Circle:', circle);
+console.log('CircleTop:', circleTop);
+
+const tl = gsap
+  .timeline({
+    scrollTrigger: {
+      trigger: ".hero-section",
+      start: "top top",
+      end: "+=200%",
+      pin: true,
+      scrub: true,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => console.log('scroll:', self.progress)
+    }
+  })
+  .fromTo(
+    [".hero-bg-svg"],
+    {
+      autoAlpha: 1
+    },
+    {
+      autoAlpha: 1
+    }
+  )
+  .fromTo(
+    circle,
+    {
+      scale: 1,
+      transformOrigin: "50% 50%"
+    },
+    {
+      scale: 1.5,
+      transformOrigin: "50% 50%",
+      duration: 3,
+      ease: "power2.in"
+    }
+  )
+  .to({}, { duration: 0.25 })
+  .fromTo(
+    circleTop,
+    {
+      scale: 0.25,
+      opacity: 0,
+      transformOrigin: "50% 50%"
+    },
+    {
+      scale: 1.5,
+      opacity: 1,
+      transformOrigin: "50% 50%",
+      duration: 3,
+      ease: "power2.in"
+    }
+  )
+  .fromTo(
+    [".hero-btn"],
+    {
+      opacity: 0,
+      pointerEvents: "none"
+    },
+    {
+      opacity: 1,
+      pointerEvents: "auto",
+      duration: 1.5,
+      ease: "power2.out"
+    },
+    "-=0.5"
+  );
+
+const boxes = gsap.utils.toArray(".box");
+gsap
+  .timeline({
+    scrollTrigger: {
+      trigger: ".panel.green",
+      start: "top 20%",
+      end: "center 20%",
+      scrub: true
+    }
+  })
+  .to(boxes, {
+    x: (i) => (i % 2 < 1 ? 100 : -100),
+    rotation: (i) => (i % 2 < 1 ? 360 : -360),
+    ease: "none"
+  });
+
+window.addEventListener("resize", () => {
+  const { innerWidth, innerHeight } = window;
+  heightRatio = innerWidth / innerHeight;
 });
+
+// ==========================================
+// INICIALIZAR TODO
+// ==========================================
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeLobby);
+} else {
+  initializeLobby();
+}
+
+// También ejecutar después de un pequeño delay
+setTimeout(initializeLobby, 500);

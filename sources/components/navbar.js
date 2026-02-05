@@ -8,8 +8,26 @@ function loadNavbar() {
         </ul>
     </nav>
     `;
-    // Insertar el menú al principio del body
+    
+    // Intentar insertar en el elemento con id navbar-container primero
+    const container = document.getElementById('navbar-container');
+    if (container) {
+        container.innerHTML = navbarHTML;
+        console.log('✅ Navbar inyectado en navbar-container');
+        return;
+    }
+    
+    // Si no existe, insertar al principio del body
+    const headerExist = document.querySelector('header.site-header');
+    if (headerExist) {
+        headerExist.innerHTML = navbarHTML;
+        console.log('✅ Navbar inyectado en header');
+        return;
+    }
+    
+    // Última opción: insertar al inicio del body
     document.body.insertAdjacentHTML('afterbegin', navbarHTML);
+    console.log('✅ Navbar inyectado al inicio del body');
 }
 
 // Ejecutar cuando el DOM esté completamente cargado
@@ -18,5 +36,6 @@ if (document.readyState === 'loading') {
 } else {
     loadNavbar();
 }
+
 
 
